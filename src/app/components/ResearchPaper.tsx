@@ -1,8 +1,34 @@
 import { useState } from 'react';
-import { FileText, Download, ExternalLink } from 'lucide-react';
+import { FileText, Download, ExternalLink, Copy, Check } from 'lucide-react';
 
 export function ResearchPaper() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const handleCopyCitation = (citation: string, index: number) => {
+    try {
+      // Create a temporary textarea element
+      const textarea = document.createElement('textarea');
+      textarea.value = citation;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+
+      // Select and copy the text
+      textarea.select();
+      textarea.setSelectionRange(0, citation.length);
+
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      if (successful) {
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to copy citation:', err);
+    }
+  };
 
   const paperContent = {
     title: "Ecological Analysis of PM2.5 exposure on Heart Disease mortality on a county level from 2020-2025 in Massachusetts",
@@ -75,15 +101,14 @@ Working with real data to explore environmental health questions has proven one 
       },
       {
         title: "References",
-        content: `U.S. Environmental Protection Agency. Outdoor Air Quality Data: Download Daily Data. Available at: https://www.epa.gov/outdoor-air-quality-data/download-daily-data.
-
-Centers for Disease Control and Prevention. Interactive Atlas of Heart Disease and Stroke. Available at: https://www.cdc.gov/dhdsp/maps/atlas/index.htm.
-
-Alexeeff SE, et al. Associations between long-term exposures to airborne PM2.5 components and mortality in Massachusetts: mixture analysis exploration. Environmental Health. 2022;21(1):97.
-
-Hart JE, et al. Particulate Matter Air Pollution and Cardiovascular Disease: An Update to the Scientific Statement From the American Heart Association. Circulation. 2010;121(21):2331-2378.
-
-Chen J, Hoek G. Long-term exposure to PM and all-cause and cause-specific mortality: A systematic review and meta-analysis. Environment International. 2020;143:105974.`
+        content: ``,
+        citations: [
+          "U.S. Environmental Protection Agency. Outdoor Air Quality Data: Download Daily Data. Available at: https://www.epa.gov/outdoor-air-quality-data/download-daily-data.",
+          "Centers for Disease Control and Prevention. Interactive Atlas of Heart Disease and Stroke. Available at: https://www.cdc.gov/dhdsp/maps/atlas/index.htm.",
+          "Alexeeff SE, et al. Associations between long-term exposures to airborne PM2.5 components and mortality in Massachusetts: mixture analysis exploration. Environmental Health. 2022;21(1):97.",
+          "Hart JE, et al. Particulate Matter Air Pollution and Cardiovascular Disease: An Update to the Scientific Statement From the American Heart Association. Circulation. 2010;121(21):2331-2378.",
+          "Chen J, Hoek G. Long-term exposure to PM and all-cause and cause-specific mortality: A systematic review and meta-analysis. Environment International. 2020;143:105974."
+        ]
       }
     ]
   };
@@ -150,6 +175,32 @@ Chen J, Hoek G. Long-term exposure to PM and all-cause and cause-specific mortal
                         <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                           {subsection.content}
                         </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : section.title === "References" && section.citations ? (
+                  <div className="space-y-3">
+                    {section.citations.map((citation, citIndex) => (
+                      <div key={citIndex} className="flex items-start gap-2 group">
+                        <p className="text-gray-700 leading-relaxed flex-1">
+                          {citation}
+                        </p>
+                        <button
+                          onClick={() => handleCopyCitation(citation, citIndex)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-gray-100 rounded-md relative"
+                          title="Copy citation"
+                        >
+                          {copiedIndex === citIndex ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <Copy className="w-4 h-4 text-gray-600" />
+                          )}
+                          {copiedIndex === citIndex && (
+                            <span className="absolute -top-8 right-0 bg-gray-900 text-white text-xs py-1 px-2 rounded whitespace-nowrap">
+                              Copied!
+                            </span>
+                          )}
+                        </button>
                       </div>
                     ))}
                   </div>
